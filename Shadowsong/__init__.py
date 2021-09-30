@@ -1,0 +1,1 @@
+from Shadowsong.bot import MusicBot
