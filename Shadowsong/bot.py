@@ -13,36 +13,36 @@ class MusicBot(commands.Bot):
         super().__init__(command_prefix=self.prefix, case_insensitive=True)
 
     def setup(self):
-        print("-Running setup...")
+        print("[Shadowsong] Running setup...")
 
         for cog in self._cogs:
             self.load_extension(f"Shadowsong.cogs.{cog}")
-            print(f"--Loaded [{cog}] cog.")
+            print(f"[Shadowsong] Loaded [{cog}] cog.")
 
-        print("-Setup complete.")
+        print("[Shadowsong] Setup complete.")
 
     def run(self):
         self.setup()
-        print("-Running bot...")
+        print("[Shadowsong] Running bot...")
         super().run(BOT_TOKEN, reconnect=True)
         super().remove_command("help")
 
     async def shutdown(self):
-        print("-Closing connection to Discord...")
+        print("[Shadowsong] Closing connection to Discord...")
         await super().close()
 
     async def close(self):
-        print("-Closing on keyboard interrupt...")
+        print("[Shadowsong] Closing on keyboard interrupt...")
         await self.shutdown()
 
     async def on_connect(self):
-        print(f"--Connected to Discord | latency: {round(self.latency * 1000)}ms.")
+        print(f"[Shadowsong] Connected to Discord | latency: {round(self.latency * 1000)}ms.")
 
     async def on_resumed(self):
-        print("-Bot resumed.")
+        print("[Shadowsong] Bot resumed.")
 
     async def on_disconnect(self):
-        print("-Bot disconnected.")
+        print("[Shadowsong] Bot disconnected.")
 
     async def on_error(self, err, *args, **kwargs):
         raise
@@ -51,8 +51,10 @@ class MusicBot(commands.Bot):
         raise getattr(exc, "original", exc)
 
     async def on_ready(self):
-        self.client_id = (await self.application_info()).id
-        print("-Bot ready.")
+        print('[Shadowsong] Logged in as {0}'.format(self.user))
+        print('------------------------------------------------------')
+        await self.change_presence(activity=discord.Game(name="$help | ver 0.0.1"))
+        print('Everything is ready.')
 
     async def prefix(self, bot, msg):
         return commands.when_mentioned_or(PREFIX)(bot, msg)
