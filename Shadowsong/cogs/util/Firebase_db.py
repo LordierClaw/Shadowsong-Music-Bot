@@ -78,22 +78,3 @@ class ServerQueue:
     def get_loop(self):
         ref = db.reference(f"/{self.server_id}/loop/")
         return ref.get()
-# ref.update({
-#     0:{
-#         "id":"ShZ978fBl6Y",
-#         "length":204,
-#         "title":"Calum Scott - You Are The Reason"
-#     },
-
-#     1:{
-#         "id":"F4nuUUJ1XlM",
-#         "length":253,
-#         "title":"You Don't Know - Katelyn Tarver"
-#     },
-
-#     2:{
-#         "id":"RBumgq5yVrA",
-#         "length":234,
-#         "title":"Passenger | Let Her Go"
-#     }
-# })
