@@ -1,5 +1,5 @@
 import re
-import os, googleapiclient.discovery
+from youtube_dl import YoutubeDL
 
 class YoutubeParser():
     def get_video_id(url: str):
@@ -20,30 +20,66 @@ class YoutubeParser():
             playlist_id = None
         return playlist_id
 
-class YoutubeAPI():
-    os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "0"
-    youtube = googleapiclient.discovery.build("youtube", "v3", developerKey = os.getenv('YOUTUBE_API_KEY'))
+class YoutubeExtractor:
+    def search_yt(self, query:str):
+        ydl_opts = {
+            'extract_flat': True,
+            'noplaylist': True,
+            'quiet': False,
+            'source_address': '0.0.0.0'
+        }
+        with YoutubeDL(ydl_opts) as ydl:
+            result = ydl.extract_info(f"ytsearch:{query}", download=False)['entries'][0]
+            id = result["id"]
+            title = result["title"]
+            length = result["duration"]
+        return id, title, length
 
-    def get_video_title(self, video_id: str): #youtube_api 
-        request = self.youtube.videos().list(
-            part="snippet",
-            id=video_id
-        )
-        response = request.execute()
-        video_title = response["items"][0]["snippet"]["title"]
-        return str(video_title)
-    
-    def get_playlist_info(self, playlist_id: str, type: str): #youtube_api
-        request = self.youtube.playlists().list(
-            part="snippet,contentDetails",
-            id=playlist_id
-        )
-        response = request.execute()
-        if type == "title":
-            result = response["items"][0]["snippet"]["title"]
-        elif type == "count":
-            result = response["items"][0]["contentDetails"]["itemCount"]
-        elif type == "all":
-            result = response
-        return result
+    def get_audio(self, id:str):
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '140',
+            }],
+            'outtmpl': '%(title)s.%(etx)s',
+            'quiet': False,
+            'source_address': '0.0.0.0'
+        }
+        url = f"https://www.youtube.com/watch?v={id}"
+        with YoutubeDL(ydl_opts) as ydl:
+            ydl._ies = [ydl.get_info_extractor('Youtube')] #get exact extractor, no need for query
+            result = ydl.extract_info(url, download=False)
+            audio_url = result["formats"][0]["url"]
+        return audio_url
+
+    def get_video(self, url:str):
+        ydl_opts = {
+            'extract_flat': True,
+            'quiet': False,
+            'source_address': '0.0.0.0' # bind to ipv4
+        }
+        with YoutubeDL(ydl_opts) as ydl:
+            ydl._ies = [ydl.get_info_extractor('Youtube')] #get exact extractor, no need for query
+            result = ydl.extract_info(url, download=False)
+            id = result["id"]
+            title = result["title"]
+            length = result["duration"]
+        return id, title, length
+
+    def get_playlist(url:str):
+        all_items = []
+
+        ydl_opts = {
+            'extract_flat': 'in_playlist',
+            'quiet': False,
+            'source_address': '0.0.0.0'
+        }
+        with YoutubeDL(ydl_opts) as ydl:
+            ydl._ies = [ydl.get_info_extractor('YoutubeTab')] #get exact extractor, no need for query
+            playlist_info = ydl.extract_info(url, download=False)
+            for item in playlist_info["entries"]:
+                all_items.append((item["id"], item["title"], item["duration"]))
+        return all_items
         
