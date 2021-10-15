@@ -7,7 +7,7 @@ from discord.ext import commands
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 PREFIX = "$"
 
-class MusicBot(commands.Bot):
+class ShadowsongBot(commands.Bot):
     def __init__(self):
         self._cogs = [p.stem for p in Path(".").glob("./Shadowsong/cogs/*.py")]
         super().__init__(command_prefix=self.prefix, case_insensitive=True)
@@ -53,7 +53,6 @@ class MusicBot(commands.Bot):
     async def on_ready(self):
         print('[Shadowsong] Logged in as {0}'.format(self.user))
         print('------------------------------------------------------')
-        await self.change_presence(activity=discord.Game(name="$help | ver 0.0.1"))
         print('Everything is ready.')
 
     async def prefix(self, bot, msg):

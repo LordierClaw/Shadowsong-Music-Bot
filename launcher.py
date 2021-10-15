@@ -1,7 +1,7 @@
-from Shadowsong.bot import MusicBot
+from Shadowsong.bot import ShadowsongBot
 
 def main():
-    bot = MusicBot()
+    bot = ShadowsongBot()
     bot.run()
 
 if __name__ == "__main__":

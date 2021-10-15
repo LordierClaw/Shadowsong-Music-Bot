@@ -1,5 +1,12 @@
 import re
 from youtube_dl import YoutubeDL
+from .ServerQueue import Video as Video
+
+class Playlist:
+    def __init__(self, title:str, count:int, items=[]):
+        self.title = title
+        self.count = count
+        self.items = items
 
 class YoutubeParser():
     def get_video_id(url: str):
@@ -20,8 +27,8 @@ class YoutubeParser():
             playlist_id = None
         return playlist_id
 
-class YoutubeExtractor:
-    def search_yt(self, query:str):
+class YoutubeExtractor():
+    def search_yt(query:str):
         ydl_opts = {
             'extract_flat': True,
             'noplaylist': True,
@@ -33,9 +40,9 @@ class YoutubeExtractor:
             id = result["id"]
             title = result["title"]
             length = result["duration"]
-        return id, title, length
+        return Video(id, title, length)
 
-    def get_audio(self, id:str):
+    def get_audio(id:str):
         ydl_opts = {
             'format': 'bestaudio/best',
             'postprocessors': [{
@@ -54,7 +61,7 @@ class YoutubeExtractor:
             audio_url = result["formats"][0]["url"]
         return audio_url
 
-    def get_video(self, url:str):
+    def get_video(url:str):
         ydl_opts = {
             'extract_flat': True,
             'quiet': False,
@@ -66,7 +73,7 @@ class YoutubeExtractor:
             id = result["id"]
             title = result["title"]
             length = result["duration"]
-        return id, title, length
+        return Video(id, title, length)
 
     def get_playlist(url:str):
         all_items = []
@@ -79,7 +86,9 @@ class YoutubeExtractor:
         with YoutubeDL(ydl_opts) as ydl:
             ydl._ies = [ydl.get_info_extractor('YoutubeTab')] #get exact extractor, no need for query
             playlist_info = ydl.extract_info(url, download=False)
+            title = playlist_info["title"]
+            count = len(playlist_info["entries"])
             for item in playlist_info["entries"]:
-                all_items.append((item["id"], item["title"], item["duration"]))
-        return all_items
-        
+                vid = Video(item["id"], item["title"], item["duration"])
+                all_items.append(vid)
+        return Playlist(title, count, all_items)
