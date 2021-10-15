@@ -1,5 +1,11 @@
-# Shadowsong Music Bot
-Overview: It's a simple discord's music bot using discord.py.
-Please note, this is not an "offical bot", it is a personal project for study, and normal use only.
+# Introduction
+Overview: It's a simple discord's music bot using discord.py and youtube-dl. Please note, this is not an "offical bot", it is a personal project for study, and normal use only.
 
-Latest version: 0.4.5
+Latest version: 0.5.0
+
+# Development Plan
+- [x] Rewrite everything in a better organized orders
+- [x] Optimize youtube-dl for faster requests
+- [ ] Add more music functions
+- [ ] Supports other audio source like soundcloud, spotify, etc
+- [ ] Fully optimize everything
