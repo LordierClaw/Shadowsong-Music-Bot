@@ -20,7 +20,7 @@ class Player(discord.PCMVolumeTransformer):
 
     @classmethod
     def stream(self, url):
-        return discord.FFmpegPCMAudio(executable='C:/FFmpeg/bin/ffmpeg.exe', source=url, **self.ffmpeg_options)
+        return discord.FFmpegPCMAudio(source=url, **self.ffmpeg_options)
 
 class Music(commands.Cog):
     def __init__(self, bot):
@@ -31,6 +31,8 @@ class Music(commands.Cog):
         if not member.bot and after.channel is None:
             if not [m for m in before.channel.members if not m.bot]:
                 try:
+                    queue = ServerQueue(before.channel.guild.id)
+                    queue.dispose()
                     await before.channel.guild.voice_client.disconnect()
                 except:
                     pass
