@@ -32,7 +32,7 @@ class YoutubeExtractor():
         ydl_opts = {
             'extract_flat': True,
             'noplaylist': True,
-            'quiet': False,
+            'quiet': True,
             'source_address': '0.0.0.0'
         }
         with YoutubeDL(ydl_opts) as ydl:
@@ -51,7 +51,7 @@ class YoutubeExtractor():
                 'preferredquality': '140',
             }],
             'outtmpl': '%(title)s.%(etx)s',
-            'quiet': False,
+            'quiet': True,
             'source_address': '0.0.0.0'
         }
         url = f"https://www.youtube.com/watch?v={id}"
@@ -64,7 +64,7 @@ class YoutubeExtractor():
     def get_video(url:str):
         ydl_opts = {
             'extract_flat': True,
-            'quiet': False,
+            'quiet': True,
             'source_address': '0.0.0.0' # bind to ipv4
         }
         with YoutubeDL(ydl_opts) as ydl:
@@ -80,7 +80,7 @@ class YoutubeExtractor():
 
         ydl_opts = {
             'extract_flat': 'in_playlist',
-            'quiet': False,
+            'quiet': True,
             'source_address': '0.0.0.0'
         }
         with YoutubeDL(ydl_opts) as ydl:

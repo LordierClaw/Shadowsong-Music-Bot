@@ -36,7 +36,7 @@ class ServerQueue:
         return int(len(self.__database[self.server_id]["queue"]))
     
     def get_current_playing(self):
-        if len(self.__database[self.server_id]["queue"]) == 0:
+        if self.get_length() == 0:
             result = None
         else:
             result = self.__database[self.server_id]["queue"][0]
@@ -50,7 +50,15 @@ class ServerQueue:
             return result
 
     def remove_in_queue(self, index:int):
-        del(self.__database[self.server_id]["queue"][index])
+        del self.__database[self.server_id]["queue"][index]
+
+    def skip_current(self): #this is only for $skip command
+        if self.get_length() <= 1:
+            raise IndexError
+        else:
+            next_item = self.__database[self.server_id]["queue"][1]
+            self.remove_in_queue(0)
+            self.__database[self.server_id]["queue"].insert(1, next_item)
 
     
     #-------------Transfer functions-------------
