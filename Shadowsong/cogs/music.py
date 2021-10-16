@@ -1,7 +1,6 @@
 import asyncio, re
 
 import discord
-from discord.errors import ClientException
 from discord.ext import commands
 
 from .util.Youtube import YoutubeExtractor
@@ -50,10 +49,12 @@ class Music(commands.Cog):
 
     @commands.command(name="disconnect", aliases=["leave"])
     async def leave(self, ctx):
+        queue = ServerQueue(ctx.message.guild.id)
         try:
             if ctx.voice_client.is_playing():
                 ctx.voice_client.stop()
             await ctx.voice_client.disconnect()
+            queue.dispose()
             await ctx.send("Disconnected!")
         except AttributeError:
             await ctx.send("I'm not in any voice channel")
@@ -155,7 +156,6 @@ class Music(commands.Cog):
         queue = ServerQueue(ctx.message.guild.id)
 
         vid = queue.get_current_playing()
-        queue_str = f"```ini\n[Now playing] {vid.title}"
         queue_length = queue.get_length()
         if queue_length == 0:
             queue_str = "```ini\n[Queue is empty]```"
@@ -185,7 +185,7 @@ class Music(commands.Cog):
             try:
                 vid_title = queue.get_item(id).title
                 queue.remove_in_queue(id)
-                await ctx.send(f"**Remove** {vid_title} from queue")
+                await ctx.send(f"**Removed** {vid_title} from queue")
             except IndexError:
                 await ctx.send("Invalid index.")
             except:
