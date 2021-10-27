@@ -1,65 +1,59 @@
-import collections
-
-
-class Video:
+class Track:
     def __init__(self, id:str, title:str, length:int):
         self.id = id
         self.title = title
         self.length = length
 
-def nested_dict():
-        return collections.defaultdict(nested_dict)
+#---------------Exception-----------------
+class err:
+    class QueueIsEmpty(Exception):
+        pass
 
-class ServerQueue:
-    # Create a 'database' for queue and loop_queue       
-    __database = nested_dict()
-    #
+    class NoMoreTracks(Exception):
+        pass
+
+    class CantRemoveCurrentTrack(Exception):
+        pass
+
+    class TrackNotExist(Exception):
+        pass
+
+    class ServerNotRegistered(Exception):
+        pass
+
+class Server:
+    __database = {}
+
     def __init__(self, server_id:int):
         self.server_id = server_id
 
+    @property
+    def Queue(self):
+        if not self.server_id in self.__database:
+            raise err.ServerNotRegistered
+        return self.__database[self.server_id]["queue"]
+
+    @property
+    def LoopQueue(self):
+        if not self.server_id in self.__database:
+            raise err.ServerNotRegistered
+        return self.__database[self.server_id]["loopqueue"]
+    
+    def is_registered(self):
+        return self.server_id in self.__database
+    
     def register(self):
-        self.__database[self.server_id] = {
-            "queue":[],
-            "loop":[]
-        }
-        print(f"[{self.server_id}] Registered")
+        self.__database[self.server_id] = {"queue": Queue(), "loopqueue": LoopQueue()}
+        print(f"[{self.server_id}] Registered - Active Server: {len(self.__database)}")
 
     def dispose(self):
-        del(self.__database[self.server_id])
-        print(f"[{self.server_id}] Disposed")
-
-    #-------------Normal queue's functions-------------
-    def add_to_queue(self, vid:Video):
-        self.__database[self.server_id]["queue"].append(vid)
-
-    def get_length(self):
-        return int(len(self.__database[self.server_id]["queue"]))
-    
-    def get_current_playing(self):
-        if self.get_length() == 0:
-            result = None
+        if self.server_id in self.__database:
+            self.Queue.clear()
+            self.LoopQueue.clear()
+            self.__database.pop(self.server_id)
+            print(f"[{self.server_id}] Disposed - Active Server: {len(self.__database)}")
         else:
-            result = self.__database[self.server_id]["queue"][0]
-        return result
-
-    def get_item(self, index:int):
-        result = self.__database[self.server_id]["queue"][index]
-        if result is None:
-            raise IndexError
-        else:
-            return result
-
-    def remove_in_queue(self, index:int):
-        del self.__database[self.server_id]["queue"][index]
-
-    def skip_current(self): #this is only for $skip command
-        if self.get_length() <= 1:
-            raise IndexError
-        else:
-            next_item = self.__database[self.server_id]["queue"][1]
-            self.remove_in_queue(0)
-            self.__database[self.server_id]["queue"].insert(1, next_item)
-
+            pass
     
     #-------------Transfer functions-------------
     def transfer_to_loop(self):
@@ -67,8 +61,59 @@ class ServerQueue:
 
     def transfer_to_queue(self):
         pass
+#----------------Queue--------------------
 
-    #-------------Loop queue's functions-------------
+class Queue:
+    def __init__(self):
+        self._queue = []
+    
+    @property
+    def is_empty(self):
+        return not self._queue
+    
+    @property
+    def list(self):
+        if not self._queue:
+            raise err.QueueIsEmpty
+        return self._queue
 
-    def get_loop(self):
+    @property
+    def length(self):
+        return len(self._queue)
+
+    @property
+    def now_playing(self):
+        if not self._queue:
+            raise err.QueueIsEmpty
+        return self._queue[0]
+
+    @property
+    def upcoming(self):
+        if not self._queue:
+            raise err.QueueIsEmpty
+        if not self._queue[1]:
+            raise err.NoMoreTracks
+        return self._queue[1]
+    
+    def add(self, item:Track):
+        self._queue.append(item)
+    
+    def get(self, index:int):
+        if index >= self.length or index < 0:
+            raise err.TrackNotExist
+
+        return self._queue[index]
+
+    def remove(self, index:int):
+        if index >= self.length or index < 0:
+            raise err.TrackNotExist
+
+        self._queue.pop(index)
+
+    def clear(self):
+        self._queue.clear()
+
+
+class LoopQueue:
+    def clear(self):
         pass

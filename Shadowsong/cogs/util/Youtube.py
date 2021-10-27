@@ -1,6 +1,6 @@
 import re
 from youtube_dl import YoutubeDL
-from .ServerQueue import Video as Video
+from .ServerQueue import Track
 
 class Playlist:
     def __init__(self, title:str, count:int, items=[]):
@@ -40,7 +40,7 @@ class YoutubeExtractor():
             id = result["id"]
             title = result["title"]
             length = result["duration"]
-        return Video(id, title, length)
+        return Track(id, title, length)
 
     def get_audio(id:str):
         ydl_opts = {
@@ -73,7 +73,7 @@ class YoutubeExtractor():
             id = result["id"]
             title = result["title"]
             length = result["duration"]
-        return Video(id, title, length)
+        return Track(id, title, length)
 
     def get_playlist(url:str):
         all_items = []
@@ -89,6 +89,6 @@ class YoutubeExtractor():
             title = playlist_info["title"]
             count = len(playlist_info["entries"])
             for item in playlist_info["entries"]:
-                vid = Video(item["id"], item["title"], item["duration"])
+                vid = Track(item["id"], item["title"], item["duration"])
                 all_items.append(vid)
         return Playlist(title, count, all_items)

@@ -1,15 +1,21 @@
-from pathlib import Path
-import os
-
 import discord
 from discord.ext import commands
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-PREFIX = "$"
+import configparser
+
+config = configparser.ConfigParser()
+config.read("config.ini")
+
+BOT_TOKEN = config["HOST"]["BOT_TOKEN"]
+PREFIX = config["BOT"]["Prefix"]
 
 class ShadowsongBot(commands.Bot):
     def __init__(self):
-        self._cogs = [p.stem for p in Path(".").glob("./Shadowsong/cogs/*.py")]
+        self._cogs = []
+        if config["BOT"]["BasicCommand"] == "1":
+            self._cogs.append("basic")
+        if config["BOT"]["MusicBot"] == "1":
+            self._cogs.append("music")
         super().__init__(command_prefix=self.prefix, case_insensitive=True)
 
     def setup(self):
