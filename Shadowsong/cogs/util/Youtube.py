@@ -8,6 +8,9 @@ class Playlist:
         self.count = count
         self.items = items
 
+def discordFormat(args:str):
+    return args.replace("[","").replace("]","").replace("#","").replace("||","")
+
 class YoutubeParser():
     def get_video_id(url: str):
         VIDEO_ID_REGEX = r"^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*"
@@ -38,8 +41,9 @@ class YoutubeExtractor():
         with YoutubeDL(ydl_opts) as ydl:
             result = ydl.extract_info(f"ytsearch:{query}", download=False)['entries'][0]
             id = result["id"]
-            title = result["title"]
+            title = discordFormat(result["title"])
             length = result["duration"]
+            
         return Track(id, title, length)
 
     def get_audio(id:str):
@@ -71,7 +75,7 @@ class YoutubeExtractor():
             ydl._ies = [ydl.get_info_extractor('Youtube')] #get exact extractor, no need for query
             result = ydl.extract_info(url, download=False)
             id = result["id"]
-            title = result["title"]
+            title = discordFormat(result["title"])
             length = result["duration"]
         return Track(id, title, length)
 
@@ -89,6 +93,6 @@ class YoutubeExtractor():
             title = playlist_info["title"]
             count = len(playlist_info["entries"])
             for item in playlist_info["entries"]:
-                vid = Track(item["id"], item["title"], item["duration"])
+                vid = Track(item["id"], discordFormat(item["title"]), item["duration"])
                 all_items.append(vid)
         return Playlist(title, count, all_items)

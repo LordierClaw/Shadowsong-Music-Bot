@@ -1,6 +1,8 @@
 from discord import Game as DiscordGame
 from discord.ext import commands
 
+from Shadowsong.bot import PREFIX
+
 import configparser
 
 config = configparser.ConfigParser()
@@ -8,7 +10,6 @@ config.read("config.ini")
 
 AUTHOR = config["INFO"]["Author"]
 VERSION = config["INFO"]["Version"]
-PREFIX = config["BOT"]["Prefix"]
 
 class Basic(commands.Cog):
     def __init__(self, bot):

@@ -9,6 +9,8 @@ config.read("config.ini")
 BOT_TOKEN = config["HOST"]["BOT_TOKEN"]
 PREFIX = config["BOT"]["Prefix"]
 
+from termcolor import colored
+
 class ShadowsongBot(commands.Bot):
     def __init__(self):
         self._cogs = []
@@ -19,36 +21,42 @@ class ShadowsongBot(commands.Bot):
         super().__init__(command_prefix=self.prefix, case_insensitive=True)
 
     def setup(self):
-        print("[Shadowsong] Running setup...")
+        print(colored("[Shadowsong]", "blue"), "Running setup...")
 
         for cog in self._cogs:
             self.load_extension(f"Shadowsong.cogs.{cog}")
-            print(f"[Shadowsong] Loaded [{cog}] cog.")
+            print(colored(f"[Shadowsong]", "blue"),"Loaded", colored(f"[{cog}]", "yellow"), "cog.")
 
-        print("[Shadowsong] Setup complete.")
+        print(colored("[Shadowsong]", "blue"), colored("Setup completed.", "green"))
 
     def run(self):
         self.setup()
-        print("[Shadowsong] Running bot...")
+        print(colored("[Shadowsong]", "blue"), "Running bot...")
         super().run(BOT_TOKEN, reconnect=True)
         super().remove_command("help")
 
     async def shutdown(self):
-        print("[Shadowsong] Closing connection to Discord...")
+        print(colored("[Shadowsong]", "blue"), colored("Closing connection to Discord...", "red"))
         await super().close()
 
     async def close(self):
-        print("[Shadowsong] Closing on keyboard interrupt...")
+        print(colored("[Shadowsong]", "blue"), colored("Closing on keyboard interrupt...", "red"))
         await self.shutdown()
 
     async def on_connect(self):
-        print(f"[Shadowsong] Connected to Discord | latency: {round(self.latency * 1000)}ms.")
+        if round(self.latency * 1000) <= 100:
+            ping_color = "green"
+        elif round(self.latency * 1000) <= 250:
+            ping_color = "yellow"
+        else:
+            ping_color = "red"
+        print(colored("[Shadowsong]", "blue"), colored(f"Connected to Discord", "green"), "| latency:", colored(f"{round(self.latency * 1000)}ms", ping_color))
 
     async def on_resumed(self):
-        print("[Shadowsong] Bot resumed.")
+        print(colored("[Shadowsong]", "blue"), colored("Bot resumed.", "green"))
 
     async def on_disconnect(self):
-        print("[Shadowsong] Bot disconnected.")
+        print(colored("[Shadowsong]", "blue"), colored("Bot disconnected.", "red"))
 
     async def on_error(self, err, *args, **kwargs):
         raise
@@ -57,9 +65,9 @@ class ShadowsongBot(commands.Bot):
         raise getattr(exc, "original", exc)
 
     async def on_ready(self):
-        print('[Shadowsong] Logged in as {0}'.format(self.user))
+        print(colored("[Shadowsong]", "blue"), "Logged in as", colored("{0}".format(self.user), "cyan"))
         print('------------------------------------------------------')
-        print('Everything is ready.')
+        print(colored("[Shadowsong]", "blue"), colored("Everything is ready.", "cyan"))
 
     async def prefix(self, bot, msg):
         return commands.when_mentioned_or(PREFIX)(bot, msg)
