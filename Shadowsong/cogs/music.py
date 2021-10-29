@@ -6,7 +6,7 @@ from discord.ext import commands
 
 from Shadowsong.bot import PREFIX
 
-from .util.Youtube import YoutubeExtractor
+from .util.Youtube import YoutubeExtractor, YoutubeParser
 from .util.ServerQueue import Server, err
 
 class Player:
@@ -80,7 +80,7 @@ class Player:
             else:
                 queue_str = f"```ini\n[Now playing] {track.title}"
                 if queue.length == 1:
-                    queue_str = queue_str + "\n" + "\n[Queue is empty]```"
+                    queue_str = queue_str + "\n" + "[Queue is empty]"
                 else:
                     for i in range(1, queue.length):
                         queue_str = queue_str + "\n" + (f"[{i}] {queue.get(i).title}")
@@ -145,29 +145,32 @@ class Music(commands.Cog):
             await ctx.send("I'm not in any voice channel")
     
     @commands.command(name="play", aliases=["p"])
-    async def play(self, ctx, *, args):
+    async def play(self, ctx, *, args=None):
         server = Server(ctx.message.guild.id)
-        is_new_queue = False
-        if not server.is_registered():
-            server.register()
-            is_new_queue = True
+        if args==None:
+            await ctx.send(f"```You have to give me something to play\nExample: {PREFIX}play Never gonna give you up```")
         else:
-            if server.LoopQueue.length == 0 or server.Queue.length == 0:
+            is_new_queue = False
+            if not server.is_registered():
+                server.register()
                 is_new_queue = True
-
-        if ctx.author.voice:
-            if ctx.voice_client is None:
-                await ctx.author.voice.channel.connect()
             else:
-                await ctx.voice_client.move_to(ctx.author.voice.channel)
-            addtrack = self.add(server, args)
-            await ctx.send(addtrack)
-            if is_new_queue == True:
-                # print("Getting audio ready")
-                await Player(server, self.bot.loop).start(ctx)
-                is_new_queue = False
-        else:
-            await ctx.send("You are not in any channel")
+                if server.LoopQueue.length == 0 or server.Queue.length == 0:
+                    is_new_queue = True
+
+            if ctx.author.voice:
+                if ctx.voice_client is None:
+                    await ctx.author.voice.channel.connect()
+                else:
+                    await ctx.voice_client.move_to(ctx.author.voice.channel)
+                addtrack = self.add(server, args)
+                await ctx.send(addtrack)
+
+                if is_new_queue == True:
+                    await Player(server, self.bot.loop).start(ctx)
+                    is_new_queue = False
+            else:
+                await ctx.send("You are not in any channel")
     
     def add(self, server:Server, args:str):
         URL_REGEX = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
@@ -183,16 +186,28 @@ class Music(commands.Cog):
             return (f"**Added:** {track.title}")
         else:
             if "list=" in args:
-                playlist = YoutubeExtractor.get_playlist(args)
+                try:
+                    playlist = YoutubeExtractor.get_playlist(args)
 
-                if server.loop == False:
-                    for track in playlist.items:
+                    if server.loop == False:
+                        for track in playlist.items:
+                            server.Queue.add(track)
+                    else:
+                        for track in playlist.items:
+                            server.LoopQueue.add(track)
+
+                    return (f"**Added** `{playlist.count}` videos from `{playlist.title}`")
+
+                except KeyError:
+                    video_url = "https://www.youtube.com/watch?v=" + YoutubeParser.get_video_id(args)
+                    track = YoutubeExtractor.get_video(video_url)
+
+                    if server.loop == False:
                         server.Queue.add(track)
-                else:
-                    for track in playlist.items:
+                    else:
                         server.LoopQueue.add(track)
 
-                return (f"**Added** `{playlist.count}` videos from `{playlist.title}`")
+                    return (f"**Added:** {track.title}")
             else:
                 track = YoutubeExtractor.get_video(args)
 
@@ -208,7 +223,7 @@ class Music(commands.Cog):
         server = Server(ctx.message.guild.id)
         try:
             await Player(server, self.bot.loop).skip(ctx)
-        except AttributeError:
+        except (AttributeError, err.ServerNotRegistered):
             await ctx.send("There is nothing to skip")
     
     @commands.command(name="queue", aliases=["q", "list", "playlist"])
@@ -234,36 +249,39 @@ class Music(commands.Cog):
             await ctx.send(f"```Error: Music.queue()\n{e}```")
     
     @commands.command(name="remove", aliases=["delete", "del", "rm"])
-    async def remove(self, ctx, id):
+    async def remove(self, ctx, id=None):
         server = Server(ctx.message.guild.id)
-        id = int(id)
-        try:
-            if server.loop == False:
-                queue = server.Queue
-                if id == 0:
-                    await ctx.send("```Invalid index.```")
+        if id==None:
+            await ctx.send(f"```You have to give me a number (or an index) in order to remove/nTry looking in {PREFIX}queue```")
+        else:
+            id = int(id)
+            try:
+                if server.loop == False:
+                    queue = server.Queue
+                    if id == 0:
+                        await ctx.send("```Invalid index.```")
+                    else:
+                        track_title = queue.get(id).title
+                        queue.remove(id)
+                        await ctx.send(f"**Removed** {track_title} from queue")
+    
                 else:
-                    track_title = queue.get(id).title
-                    queue.remove(id)
-                    await ctx.send(f"**Removed** {track_title} from queue")
-   
-            else:
-                loop_queue = server.LoopQueue
-                if id == loop_queue.location:
-                    await ctx.send("```Invalid index. This track is already playing```")
-                else:
-                    track_title = loop_queue.get(id).title
-                    loop_queue.remove(id)
-                    await ctx.send(f"**Removed** {track_title} from queue")
-        except err.ServerNotRegistered:
-            await ctx.send("```There is nothing to remove```")
-        except err.TrackNotExist:
-            await ctx.send("```Invalid index.```")
-        except Exception as e:
-            await ctx.send(f"```Error: Music.remove()\n{e}```")
+                    loop_queue = server.LoopQueue
+                    if id == loop_queue.location:
+                        await ctx.send("```Invalid index. This track is already playing```")
+                    else:
+                        track_title = loop_queue.get(id).title
+                        loop_queue.remove(id)
+                        await ctx.send(f"**Removed** {track_title} from queue")
+            except err.ServerNotRegistered:
+                await ctx.send("```There is nothing to remove```")
+            except err.TrackNotExist:
+                await ctx.send("```Invalid index.```")
+            except Exception as e:
+                await ctx.send(f"```Error: Music.remove()\n{e}```")
 
-    @commands.command(name="loop")
-    async def loop(self, ctx, args):
+    @commands.command(name="loop", aliases=["repeat"])
+    async def loop(self, ctx, args=None):
         server = Server(ctx.message.guild.id)
         try:
             if args == "on":
@@ -272,8 +290,12 @@ class Music(commands.Cog):
             elif args == "off":
                 server.transfer_to_queue()
                 await ctx.send("Loop is off")
-        except:
-            await ctx.send(f"```You are using {PREFIX}loop wrong. It should be:\n{PREFIX}loop on\n{PREFIX}loop off```")
+            else:
+                await ctx.send(f"```You are using {PREFIX}loop wrong. It should be:\n{PREFIX}loop on\n{PREFIX}loop off```")
+        except err.ServerNotRegistered:
+            await ctx.send("```There is nothing to loop```")
+        except Exception as e:
+            await ctx.send(f"```Error: Music.loop()\n{e}```")
 
     @commands.command(name="clear", aliases=["cl"])
     async def clear(self, ctx):
@@ -281,6 +303,7 @@ class Music(commands.Cog):
         if ctx.voice_client.is_playing():
             ctx.voice_client.stop()
         server.dispose()
+
 
 def setup(bot):
     bot.add_cog(Music(bot))

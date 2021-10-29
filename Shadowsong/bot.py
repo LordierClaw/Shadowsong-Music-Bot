@@ -10,6 +10,8 @@ BOT_TOKEN = config["HOST"]["BOT_TOKEN"]
 PREFIX = config["BOT"]["Prefix"]
 
 from termcolor import colored
+import colorama
+colorama.init()
 
 class ShadowsongBot(commands.Bot):
     def __init__(self):

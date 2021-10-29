@@ -1,5 +1,6 @@
-import re
 from termcolor import colored
+import colorama
+colorama.init()
 
 class Track:
     def __init__(self, id:str, title:str, length:int):
@@ -32,6 +33,8 @@ class Server:
     
     @property
     def loop(self):
+        if not self.server_id in self.__database:
+            raise err.ServerNotRegistered
         return self.__database[self.server_id]["is_loop"]
     
     @loop.setter
@@ -62,7 +65,7 @@ class Server:
             self.Queue.clear()
             self.LoopQueue.clear()
             self.__database.pop(self.server_id)
-            print(colored(f"[{self.server_id}]", "yellow"), colored("Registered", "red"), f"- Active Server: {len(self.__database)}")
+            print(colored(f"[{self.server_id}]", "yellow"), colored("Disposed", "red"), f"- Active Server: {len(self.__database)}")
         else:
             pass
     

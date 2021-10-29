@@ -38,6 +38,7 @@ class Basic(commands.Cog):
   {PREFIX}queue or {PREFIX}q to show the current queue/playlist
   {PREFIX}remove or {PREFIX}delete to remove a video from the queue (ex: {PREFIX}rm 2)
   {PREFIX}skip or {PREFIX}next to skip the current track
+  {PREFIX}loop or {PREFIX}repeat to start looping
   {PREFIX}clear or {PREFIX}cl to clear the queue```"""
             help_str = help_str + music_help
         else:
