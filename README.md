@@ -1,7 +1,7 @@
 # Introduction
 Overview: It's a simple discord's music bot using discord.py and youtube-dl. Please note, this is not an "offical bot", it is a personal project for study, and normal use only.
 
-Latest version: 0.5.0
+Latest version: 0.6.3
 
 # Development Plan
 - [x] Rewrite everything in a better organized orders
