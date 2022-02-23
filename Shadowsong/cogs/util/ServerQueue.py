@@ -69,6 +69,15 @@ class Server:
         else:
             pass
     
+    def getDatabase():
+        registered_servers = []
+        for server in Server.__database:
+            registered_servers.append((server,
+                                        Server(server).loop,
+                                        Server(server).Queue.length,
+                                        Server(server).LoopQueue.length))
+            
+    
     #-------------Transfer functions-------------
     def transfer_to_loop(self):
         if self.loop == False:
