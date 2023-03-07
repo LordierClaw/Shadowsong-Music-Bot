@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run launcher.py",
+            "type": "python",
+            "request": "launch",
+            "program": "launcher.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}

@@ -1,5 +1,5 @@
 import re
-from youtube_dl import YoutubeDL
+from yt_dlp import YoutubeDL
 from .ServerQueue import Track
 
 class Playlist:
@@ -33,6 +33,7 @@ class YoutubeParser():
 class YoutubeExtractor():
     def search_yt(query:str):
         ydl_opts = {
+            'format': 'best',
             'extract_flat': True,
             'noplaylist': True,
             'quiet': True,
@@ -52,7 +53,7 @@ class YoutubeExtractor():
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
-                'preferredquality': '140',
+                'preferredquality': '192',
             }],
             'outtmpl': '%(title)s.%(etx)s',
             'quiet': True,
@@ -60,9 +61,10 @@ class YoutubeExtractor():
         }
         url = f"https://www.youtube.com/watch?v={id}"
         with YoutubeDL(ydl_opts) as ydl:
-            ydl._ies = [ydl.get_info_extractor('Youtube')] #get exact extractor, no need for query
+            ie_key = 'Youtube'
+            ydl._ies = {ie_key: ydl.get_info_extractor(ie_key)} #get exact extractor, no need for query
             result = ydl.extract_info(url, download=False)
-            audio_url = result["formats"][0]["url"]
+            audio_url = result['url']
         return audio_url
 
     def get_video(url:str):
@@ -72,7 +74,8 @@ class YoutubeExtractor():
             'source_address': '0.0.0.0' # bind to ipv4
         }
         with YoutubeDL(ydl_opts) as ydl:
-            ydl._ies = [ydl.get_info_extractor('Youtube')] #get exact extractor, no need for query
+            ie_key = 'Youtube'
+            ydl._ies = {ie_key: ydl.get_info_extractor(ie_key)} #get exact extractor, no need for query
             result = ydl.extract_info(url, download=False)
             id = result["id"]
             title = discordFormat(result["title"])
@@ -88,7 +91,8 @@ class YoutubeExtractor():
             'source_address': '0.0.0.0'
         }
         with YoutubeDL(ydl_opts) as ydl:
-            ydl._ies = [ydl.get_info_extractor('YoutubeTab')] #get exact extractor, no need for query
+            ie_key = 'YoutubeTab'
+            ydl._ies = {ie_key: ydl.get_info_extractor(ie_key)} #get exact extractor, no need for query
             playlist_info = ydl.extract_info(url, download=False)
             title = playlist_info["title"]
             count = len(playlist_info["entries"])

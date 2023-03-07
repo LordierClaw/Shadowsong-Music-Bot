@@ -4,7 +4,7 @@ import discord
 from discord.errors import ClientException
 from discord.ext import commands
 
-from Shadowsong.bot import PREFIX
+PREFIX = "$"
 
 from .util.Youtube import YoutubeExtractor, YoutubeParser
 from .util.ServerQueue import Server, err
@@ -303,7 +303,3 @@ class Music(commands.Cog):
         if ctx.voice_client.is_playing():
             ctx.voice_client.stop()
         server.dispose()
-
-
-def setup(bot):
-    bot.add_cog(Music(bot))

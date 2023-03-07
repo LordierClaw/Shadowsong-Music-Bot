@@ -1,1 +1,1 @@
-from Shadowsong.bot import ShadowsongBot
+from Shadowsong.bot import DiscordBot
